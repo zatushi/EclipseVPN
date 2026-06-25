@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EclipseVPN — Безопасность в сети</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ── Reset & Base ─────────────────────── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0b0b12;
+            color: #e0e0f0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0b12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6c3bff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px #6c3bff88;
+        }
+
+        /* ── Neon Snow Canvas ──────────────────── */
+        #snowCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: block;
+        }
+
+        /* ── Neon Glow Utilities ───────────────── */
+        .neon-text {
+            text-shadow: 0 0 10px currentColor, 0 0 30px currentColor, 0 0 60px currentColor;
+        }
+        .neon-box {
+            box-shadow: 0 0 20px rgba(108, 59, 255, .4), 0 0 60px rgba(108, 59, 255, .15);
+        }
+        .neon-border {
+            border: 1px solid rgba(108, 59, 255, .4);
+            box-shadow: inset 0 0 30px rgba(108, 59, 255, .08), 0 0 30px rgba(108, 59, 255, .12);
+        }
+
+        /* ── Container ─────────────────────────── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Navigation ────────────────────────── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            padding: 16px 0;
+            background: rgba(11, 11, 18, .72);
+            backdrop-filter: blur(16px) saturate(1.4);
+            border-bottom: 1px solid rgba(108, 59, 255, .15);
+            transition: background .3s, box-shadow .3s;
+        }
+        nav.scrolled {
+            background: rgba(11, 11, 18, .92);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, .7);
+        }
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: -.03em;
+            background: linear-gradient(135deg, #a78bfa, #6c3bff, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(108, 59, 255, .3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo span {
+            font-weight: 300;
+            -webkit-text-fill-color: #a0a0c0;
+            background: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 36px;
+            list-style: none;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #b0b0d0;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: .95rem;
+            letter-spacing: .02em;
+            transition: color .25s, text-shadow .25s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #a78bfa, #f472b6);
+            transition: width .35s ease;
+            box-shadow: 0 0 16px #a78bfa88;
+        }
+        .nav-links a:hover {
+            color: #f0f0ff;
+            text-shadow: 0 0 20px rgba(167, 139, 250, .3);
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .nav-cta {
+            background: linear-gradient(135deg, #6c3bff, #a78bfa);
+            padding: 8px 22px;
+            border-radius: 40px;
+            color: #fff !important;
+            font-weight: 600;
+            box-shadow: 0 0 30px rgba(108, 59, 255, .3);
+            transition: transform .25s, box-shadow .25s;
+        }
+        .nav-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(108, 59, 255, .5);
+        }
+        .nav-cta::after {
+            display: none !important;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            background: none;
+            border: none;
+        }
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 2.5px;
+            background: #c0c0e0;
+            border-radius: 4px;
+            transition: .3s;
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ── Hero ──────────────────────────────── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(108, 59, 255, .12) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pulseGlow 6s ease-in-out infinite alternate;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(244, 114, 182, .08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pulseGlow 8s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes pulseGlow {
+            0% {
+                transform: scale(1) translate(0, 0);
+                opacity: .6;
+            }
+            100% {
+                transform: scale(1.2) translate(30px, -30px);
+                opacity: 1;
+            }
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-content h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -.03em;
+            margin-bottom: 20px;
+        }
+        .hero-content h1 .gradient {
+            background: linear-gradient(135deg, #a78bfa, #6c3bff, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(108, 59, 255, .25);
+        }
+        .hero-content p {
+            font-size: 1.2rem;
+            color: #a0a0c8;
+            max-width: 480px;
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            padding: 14px 40px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            background: linear-gradient(135deg, #6c3bff, #a78bfa);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(108, 59, 255, .35);
+            transition: transform .3s, box-shadow .3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 70px rgba(108, 59, 255, .5);
+        }
+        .btn-secondary {
+            padding: 14px 40px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 1px solid rgba(167, 139, 250, .3);
+            background: transparent;
+            color: #c0c0e8;
+            cursor: pointer;
+            transition: .3s;
+            text-decoration: none;
+            display: inline-block;
+            backdrop-filter: blur(4px);
+        }
+        .btn-secondary:hover {
+            background: rgba(167, 139, 250, .08);
+            border-color: rgba(167, 139, 250, .6);
+            box-shadow: 0 0 40px rgba(167, 139, 250, .1);
+            transform: translateY(-3px);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 40px;
+        }
+        .hero-stats .stat {
+            text-align: left;
+        }
+        .hero-stats .stat .number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-stats .stat .label {
+            font-size: .85rem;
+            color: #8080a8;
+            font-weight: 400;
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .hero-globe {
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(167, 139, 250, .15), rgba(108, 59, 255, .05));
+            border: 1px solid rgba(167, 139, 250, .15);
+            box-shadow: 0 0 100px rgba(108, 59, 255, .08), inset 0 0 100px rgba(108, 59, 255, .04);
+            position: relative;
+            animation: floatGlobe 6s ease-in-out infinite alternate;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-globe::before {
+            content: '🌐';
+            font-size: 8rem;
+            filter: drop-shadow(0 0 60px rgba(108, 59, 255, .3));
+            animation: spinGlobe 20s linear infinite;
+        }
+        @keyframes floatGlobe {
+            0% {
+                transform: translateY(0px) scale(1);
+            }
+            100% {
+                transform: translateY(-20px) scale(1.02);
+            }
+        }
+        @keyframes spinGlobe {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .orbits {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(167, 139, 250, .06);
+            animation: spinOrbit 12s linear infinite;
+        }
+        .orbits:nth-child(2) {
+            width: 85%;
+            height: 85%;
+            animation-duration: 18s;
+            animation-direction: reverse;
+        }
+        .orbits:nth-child(3) {
+            width: 70%;
+            height: 70%;
+            animation-duration: 24s;
+        }
+        @keyframes spinOrbit {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Section Common ────────────────────── */
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+        .section-label {
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .2em;
+            color: #a78bfa;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            text-shadow: 0 0 30px rgba(167, 139, 250, .15);
+        }
+        .section-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            margin-bottom: 16px;
+            line-height: 1.15;
+        }
+        .section-title .highlight {
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .section-desc {
+            color: #a0a0c8;
+            font-size: 1.1rem;
+            max-width: 560px;
+            line-height: 1.7;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-header .section-desc {
+            margin: 0 auto;
+        }
+
+        /* ── Features ──────────────────────────── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, .02);
+            border-radius: 24px;
+            padding: 40px 32px;
+            border: 1px solid rgba(167, 139, 250, .06);
+            transition: transform .4s, border-color .4s, box-shadow .4s;
+            backdrop-filter: blur(4px);
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(167, 139, 250, .04), transparent 70%);
+            opacity: 0;
+            transition: opacity .5s;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(167, 139, 250, .2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5), 0 0 40px rgba(108, 59, 255, .04);
+        }
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+        .feature-card .icon {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+            display: block;
+            filter: drop-shadow(0 0 20px rgba(167, 139, 250, .15));
+        }
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #f0f0ff;
+        }
+        .feature-card p {
+            color: #9090b8;
+            font-size: .95rem;
+            line-height: 1.7;
+        }
+
+        /* ── Pricing ───────────────────────────── */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            align-items: stretch;
+        }
+        .pricing-card {
+            background: rgba(255, 255, 255, .02);
+            border-radius: 24px;
+            padding: 40px 32px;
+            border: 1px solid rgba(167, 139, 250, .06);
+            transition: transform .4s, border-color .4s, box-shadow .4s;
+            backdrop-filter: blur(4px);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        .pricing-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(167, 139, 250, .15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+        }
+        .pricing-card.popular {
+            border-color: rgba(167, 139, 250, .3);
+            box-shadow: 0 0 60px rgba(108, 59, 255, .06);
+            background: rgba(167, 139, 250, .03);
+        }
+        .pricing-card .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #6c3bff, #a78bfa);
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #fff;
+            margin-bottom: 16px;
+            align-self: center;
+            box-shadow: 0 0 30px rgba(108, 59, 255, .2);
+        }
+        .pricing-card .plan-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f0f0ff;
+        }
+        .pricing-card .price {
+            font-size: 3.2rem;
+            font-weight: 900;
+            margin: 12px 0 4px;
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .pricing-card .price span {
+            font-size: 1rem;
+            font-weight: 400;
+            -webkit-text-fill-color: #8080a8;
+            color: #8080a8;
+        }
+        .pricing-card .plan-desc {
+            color: #9090b8;
+            font-size: .9rem;
+            margin-bottom: 24px;
+        }
+        .pricing-card ul {
+            list-style: none;
+            text-align: left;
+            margin: 0 0 32px;
+            flex: 1;
+        }
+        .pricing-card ul li {
+            padding: 8px 0;
+            color: #c0c0e0;
+            font-size: .95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+        }
+        .pricing-card ul li::before {
+            content: '✦';
+            color: #a78bfa;
+            font-size: .8rem;
+        }
+        .pricing-card .btn-plan {
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #6c3bff, #a78bfa);
+            color: #fff;
+            cursor: pointer;
+            transition: transform .3s, box-shadow .3s;
+            box-shadow: 0 0 30px rgba(108, 59, 255, .2);
+            font-size: 1rem;
+            width: 100%;
+        }
+        .pricing-card .btn-plan:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 50px rgba(108, 59, 255, .35);
+        }
+        .pricing-card .btn-plan.outline {
+            background: transparent;
+            border: 1px solid rgba(167, 139, 250, .2);
+            box-shadow: none;
+            color: #c0c0e8;
+        }
+        .pricing-card .btn-plan.outline:hover {
+            background: rgba(167, 139, 250, .06);
+            border-color: rgba(167, 139, 250, .4);
+            box-shadow: 0 0 40px rgba(167, 139, 250, .05);
+        }
+
+        /* ── Testimonials ──────────────────────── */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        .testimonial-card {
+            background: rgba(255, 255, 255, .02);
+            border-radius: 20px;
+            padding: 32px 28px;
+            border: 1px solid rgba(167, 139, 250, .06);
+            transition: transform .4s, border-color .4s;
+        }
+        .testimonial-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(167, 139, 250, .12);
+        }
+        .testimonial-card .stars {
+            color: #fbbf24;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 20px rgba(251, 191, 36, .15);
+        }
+        .testimonial-card blockquote {
+            font-size: 1rem;
+            color: #d0d0e8;
+            line-height: 1.7;
+            font-style: italic;
+            margin-bottom: 16px;
+        }
+        .testimonial-card .author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .testimonial-card .author .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6c3bff, #a78bfa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            box-shadow: 0 0 30px rgba(108, 59, 255, .15);
+        }
+        .testimonial-card .author .name {
+            font-weight: 600;
+            color: #f0f0ff;
+        }
+        .testimonial-card .author .handle {
+            font-size: .8rem;
+            color: #8080a8;
+        }
+
+        /* ── CTA ───────────────────────────────── */
+        .cta-section {
+            background: radial-gradient(ellipse at 30% 50%, rgba(108, 59, 255, .08), transparent 70%);
+            border-top: 1px solid rgba(167, 139, 250, .06);
+            border-bottom: 1px solid rgba(167, 139, 250, .06);
+            padding: 80px 0;
+            text-align: center;
+        }
+        .cta-section h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            color: #a0a0c8;
+            font-size: 1.15rem;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+        .cta-section .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ── Footer ────────────────────────────── */
+        footer {
+            padding: 50px 0 30px;
+            border-top: 1px solid rgba(167, 139, 250, .06);
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .footer-brand .logo {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        .footer-brand p {
+            color: #8080a8;
+            font-size: .9rem;
+            max-width: 300px;
+            line-height: 1.7;
+        }
+        .footer-col h4 {
+            font-weight: 600;
+            color: #f0f0ff;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        .footer-col ul {
+            list-style: none;
+        }
+        .footer-col ul li {
+            margin-bottom: 10px;
+        }
+        .footer-col ul a {
+            color: #8080a8;
+            text-decoration: none;
+            transition: color .25s;
+            font-size: .9rem;
+        }
+        .footer-col ul a:hover {
+            color: #a78bfa;
+            text-shadow: 0 0 20px rgba(167, 139, 250, .1);
+        }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(167, 139, 250, .06);
+            color: #606088;
+            font-size: .85rem;
+        }
+        .footer-bottom .heart {
+            color: #f472b6;
+        }
+
+        /* ── Scroll Animations ──────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity .8s ease, transform .8s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-delay-1 {
+            transition-delay: .1s;
+        }
+        .reveal-delay-2 {
+            transition-delay: .2s;
+        }
+        .reveal-delay-3 {
+            transition-delay: .3s;
+        }
+        .reveal-delay-4 {
+            transition-delay: .4s;
+        }
+
+        /* ── Responsive ────────────────────────── */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .hero-content p {
+                margin: 0 auto 32px;
+            }
+            .hero-buttons {
+                justify-content: center;
+            }
+            .hero-stats {
+                justify-content: center;
+            }
+            .hero-globe {
+                width: 280px;
+                height: 280px;
+            }
+            .hero-globe::before {
+                font-size: 5rem;
+            }
+            .features-grid,
+            .pricing-grid,
+            .testimonials-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(11, 11, 18, .96);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                justify-content: center;
+                gap: 32px;
+                transform: translateX(100%);
+                transition: transform .4s cubic-bezier(.22, 1, .36, 1);
+                padding: 40px;
+                z-index: 998;
+            }
+            .nav-links.open {
+                transform: translateX(0);
+            }
+            .nav-links a {
+                font-size: 1.4rem;
+            }
+            .hamburger {
+                display: flex;
+                z-index: 999;
+            }
+            .hero-content h1 {
+                font-size: 2.8rem;
+            }
+            .hero-globe {
+                width: 220px;
+                height: 220px;
+            }
+            .hero-globe::before {
+                font-size: 4rem;
+            }
+            .features-grid,
+            .pricing-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+            .section-title {
+                font-size: 2.2rem;
+            }
+            .cta-section h2 {
+                font-size: 2.2rem;
+            }
+            .hero-stats {
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .pricing-card .price {
+                font-size: 2.6rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-content h1 {
+                font-size: 2.2rem;
+            }
+            .hero-globe {
+                width: 170px;
+                height: 170px;
+            }
+            .hero-globe::before {
+                font-size: 3rem;
+            }
+            .btn-primary,
+            .btn-secondary {
+                padding: 12px 28px;
+                font-size: .9rem;
+                width: 100%;
+                text-align: center;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ Navigation ═══ -->
+    <nav id="navbar" role="navigation" aria-label="Главная навигация">
+        <div class="container nav-inner">
+            <a href="#" class="logo" aria-label="EclipseVPN">Eclipse<span>VPN</span></a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#features">Возможности</a></li>
+                <li><a href="#pricing">Тарифы</a></li>
+                <li><a href="#testimonials">Отзывы</a></li>
+                <li><a href="#cta" class="nav-cta">Начать</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="Меню" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ═══ Hero ═══ -->
+    <section class="hero" id="home">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <span class="section-label">⚡ Новое поколение</span>
+                <h1>
+                    Безопасный<br />
+                    <span class="gradient">интернет</span> для всех
+                </h1>
+                <p>
+                    Мгновенное подключение, надёжная защита и полная
+                    анонимность. Ваши данные под надёжной защитой.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#features" class="btn-secondary">Узнать больше →</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="number">10K+</div>
+                        <div class="label">Активных пользователей</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">99.9%</div>
+                        <div class="label">Время работы</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">45</div>
+                        <div class="label">Стран-серверов</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-globe">
+                    <div class="orbits"></div>
+                    <div class="orbits"></div>
+                    <div class="orbits"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Features ═══ -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">✦ Преимущества</span>
+                <h2 class="section-title">
+                    Всё, что нужно для <span class="highlight">безопасности</span>
+                </h2>
+                <p class="section-desc">
+                    Современные технологии шифрования и высокая скорость —
+                    идеальный баланс для комфортной работы в сети.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card reveal reveal-delay-1">
+                    <span class="icon">🛡️</span>
+                    <h3>Шифрование AES-256</h3>
+                    <p>Военный стандарт шифрования, который гарантирует полную защиту ваших данных.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <span class="icon">⚡</span>
+                    <h3>Молниеносная скорость</h3>
+                    <p>Оптимизированные серверы и протоколы для максимальной производительности.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <span class="icon">🌍</span>
+                    <h3>45+ стран</h3>
+                    <p>Огромный выбор серверов по всему миру для доступа к любому контенту.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <span class="icon">🚫</span>
+                    <h3>No-Logs политика</h3>
+                    <p>Мы не храним логи вашей активности — ваша приватность под контролем.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <span class="icon">📱</span>
+                    <h3>Все устройства</h3>
+                    <p>Поддержка Windows, macOS, iOS, Android и Linux в одном тарифе.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <span class="icon">🎯</span>
+                    <h3>Блокировка рекламы</h3>
+                    <p>Встроенная защита от трекеров и назойливой рекламы для чистого сёрфинга.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Pricing ═══ -->
+    <section id="pricing" style="background: rgba(167,139,250,.015);">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">💰 Тарифы</span>
+                <h2 class="section-title">
+                    Выбери свой <span class="highlight">план</span>
+                </h2>
+                <p class="section-desc">
+                    Гибкие тарифы для любых задач. Выбери
+                    премиум-доступ.
+                </p>
+            </div>
+            <div class="pricing-grid">
+                <!-- Free -->
+                <div class="pricing-card reveal reveal-delay-1">
+                    <div class="plan-name">Базовый</div>
+                    <div class="price">299<span> ₽ / мес</span></div>
+                    <div class="plan-desc">Для знакомства с сервисом</div>
+                    <ul>
+                        <li>1 устройство</li>
+                        <li>Скорость до 50 Мбит/с</li>
+                        <li>3 страны-сервера</li>
+                        <li>Базовое шифрование</li>
+                    </ul>
+                    <a class="btn-plan outline" href="http://t.me/eclipse_vpn_bot">Купить</a>
+                </div>
+
+                <!-- Business -->
+                <div class="pricing-card reveal reveal-delay-3">
+                    <div class="plan-name">Бизнес</div>
+                    <div class="price">1 299<span> ₽ / мес</span></div>
+                    <div class="plan-desc">Для корпоративных клиентов</div>
+                    <ul>
+                        <li>До 15 устройств</li>
+                        <li>Скорость до 1 Гбит/с</li>
+                        <li>Все страны-серверы</li>
+                        <li>AES-256 + дополнительная защита</li>
+                        <li>Выделенный менеджер</li>
+                        <li>Индивидуальная настройка</li>
+                    </ul>
+                    <a class="btn-plan outline" href="http://t.me/eclipse_vpn_bot">Купить</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Testimonials ═══ -->
+    <section id="testimonials">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">💬 Отзывы</span>
+                <h2 class="section-title">
+                    Что говорят <span class="highlight">пользователи</span>
+                </h2>
+                <p class="section-desc">
+                    Реальные истории от людей, которые уже оценили надёжность
+                    и скорость EclipseVPN.
+                </p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card reveal reveal-delay-1">
+                    <div class="stars">★★★★★</div>
+                    <blockquote>
+                        «Лучший VPN, которым я пользовался. Скорость не падает
+                        даже на дальних серверах, а интерфейс очень понятный.»
+                    </blockquote>
+                    <div class="author">
+                        <div class="avatar">АК</div>
+                        <div>
+                            <div class="name">Андрей К.</div>
+                            <div class="handle">@andrey_dev</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card reveal reveal-delay-2">
+                    <div class="stars">★★★★★</div>
+                    <blockquote>
+                        «Работаю в IT-сфере и ценю безопасность. EclipseVPN даёт
+                        уверенность, что мои данные действительно защищены.»
+                    </blockquote>
+                    <div class="author">
+                        <div class="avatar">ЕМ</div>
+                        <div>
+                            <div class="name">Елена М.</div>
+                            <div class="handle">@helen_tech</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card reveal reveal-delay-3">
+                    <div class="stars">★★★★★</div>
+                    <blockquote>
+                        «Путешествую по миру и всегда подключаюсь через
+                        EclipseVPN. Стабильность и скорость просто отличные!»
+                    </blockquote>
+                    <div class="author">
+                        <div class="avatar">ДС</div>
+                        <div>
+                            <div class="name">Дмитрий С.</div>
+                            <div class="handle">@dmitry_global</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ CTA ═══ -->
+    <section class="cta-section" id="cta">
+        <div class="container reveal">
+            <span class="section-label">🚀 Начни сейчас</span>
+            <h2>Готов к <span class="highlight">безопасному</span> интернету?</h2>
+            <p>
+                Присоединяйся к тысячам пользователей, которые уже защищают
+                свои данные с EclipseVPN.
+            </p>
+            <div class="btn-group">
+                <a href="#pricing" class="btn-secondary">Смотреть тарифы</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Footer ═══ -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">Eclipse<span>VPN</span></div>
+                    <p>
+                        Надёжная защита данных и полная анонимность в сети.
+                        Твой безопасный интернет начинается здесь.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4>Продукт</h4>
+                    <ul>
+                        <li><a href="#features">Возможности</a></li>
+                        <li><a href="#pricing">Тарифы</a></li>
+                        <li><a href="#">Блог</a></li>
+                        <li><a href="#">Поддержка</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Компания</h4>
+                    <ul>
+                        <li><a href="#">О нас</a></li>
+                        <li><a href="#">Карьера</a></li>
+                        <li><a href="#">Политика</a></li>
+                        <li><a href="#">Контакты</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Соцсети</h4>
+                    <ul>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Telegram</a></li>
+                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#">YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2026 EclipseVPN — Сделано с <span class="heart">♥</span> для безопасности в сети.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══ Neon Snow Canvas ═══ -->
+    <canvas id="snowCanvas"></canvas>
+
+    <!-- ═══ Scripts ═══ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ── Hamburger ──
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
+
+            hamburger.addEventListener('click', function() {
+                const isOpen = navLinks.classList.toggle('open');
+                hamburger.classList.toggle('active');
+                hamburger.setAttribute('aria-expanded', isOpen);
+            });
+
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                    hamburger.classList.remove('active');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                });
+            });
+
+            // ── Navbar scroll ──
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+
+            // ── Reveal animations ──
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+            revealElements.forEach(el => observer.observe(el));
+
+            // ── Smooth anchor offset ──
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        e.preventDefault();
+                        const navHeight = navbar.offsetHeight;
+                        const targetPos = target.getBoundingClientRect().top + window.pageYOffset -
+                            navHeight - 16;
+                        window.scrollTo({ top: targetPos, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // ── Pricing button feedback ──
+            document.querySelectorAll('.btn-plan').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!this.classList.contains('outline') || this.textContent.trim() === 'Связаться') {
+                        const original = this.textContent;
+                        this.textContent = '✅ Готово!';
+                        this.style.boxShadow = '0 0 50px rgba(108,59,255,.5)';
+                        setTimeout(() => {
+                            this.textContent = original;
+                            this.style.boxShadow = '';
+                        }, 1600);
+                    } else {
+                        this.style.borderColor = 'rgba(167,139,250,.6)';
+                        setTimeout(() => {
+                            this.style.borderColor = '';
+                        }, 600);
+                    }
+                });
+            });
+
+            // ── Hero globe parallax ──
+            const globe = document.querySelector('.hero-globe');
+            if (globe) {
+                document.querySelector('.hero-visual').addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width - 0.5;
+                    const y = (e.clientY - rect.top) / rect.height - 0.5;
+                    globe.style.transform = `translate(${x * 8}px, ${y * 8}px) scale(1.02)`;
+                });
+                document.querySelector('.hero-visual').addEventListener('mouseleave', function() {
+                    globe.style.transform = 'translate(0, 0) scale(1)';
+                });
+            }
+
+            // ── Neon Snow Effect ──────────────────
+            const canvas = document.getElementById('snowCanvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            const particles = [];
+            const PARTICLE_COUNT = 150;
+
+            // Цвета в стиле неона (фиолетовый, синий, розовый)
+            const palette = [
+                { r: 167, g: 139, b: 250 }, // #a78bfa
+                { r: 108, g: 59, b: 255 }, // #6c3bff
+                { r: 244, g: 114, b: 182 }, // #f472b6
+                { r: 139, g: 92, b: 246 }, // #8b5cf6
+                { r: 236, g: 72, b: 153 }, // #ec4899
+            ];
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() {
+                    this.reset(true);
+                }
+                reset(initial) {
+                    this.x = Math.random() * width;
+                    this.y = initial ? Math.random() * height : -10 - Math.random() * 20;
+                    this.size = 2 + Math.random() * 4; // 2–6px
+                    this.speedY = 0.4 + Math.random() * 0.8;
+                    this.speedX = (Math.random() - 0.5) * 0.3;
+                    this.opacity = 0.4 + Math.random() * 0.6;
+                    this.color = palette[Math.floor(Math.random() * palette.length)];
+                    // случайное свечение
+                    this.glow = 6 + Math.random() * 14;
+                }
+                update() {
+                    this.y += this.speedY;
+                    this.x += this.speedX + Math.sin(this.y * 0.005) * 0.1; // легкое покачивание
+                    if (this.y > height + 20) {
+                        this.reset(false);
+                    }
+                    if (this.x < -20) this.x = width + 20;
+                    if (this.x > width + 20) this.x = -20;
+                }
+                draw() {
+                    const { r, g, b } = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${r},${g},${b},${this.opacity})`;
+                    ctx.shadowColor = `rgba(${r},${g},${b},${this.opacity * 0.7})`;
+                    ctx.shadowBlur = this.glow;
+                    ctx.fill();
+                    // дополнительное свечение (центр ярче)
+                    ctx.shadowBlur = 0;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.4, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${this.opacity * 0.3})`;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push(new Particle());
+            }
+
+            function animateSnow() {
+                ctx.clearRect(0, 0, width, height);
+                for (const p of particles) {
+                    p.update();
+                    p.draw();
+                }
+                requestAnimationFrame(animateSnow);
+            }
+            animateSnow();
+
+            // ── Console easter egg ──
+            console.log('%c⚡ EclipseVPN — ваш безопасный интернет', 'font-size:20px; font-weight:700; color:#a78bfa;');
+            console.log('%c❄️ Неоновый снег активирован', 'font-size:14px; color:#f472b6;');
+
+        })();
+    </script>
+</body>
+</html>
